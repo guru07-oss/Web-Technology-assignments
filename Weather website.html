@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Real-time Weather (No API Key)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #e0f2ff, #ffffff);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 350px;
+      text-align: center;
+    }
+    h2 { margin: 0; color: #2563eb; }
+    input {
+      width: 70%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    button {
+      padding: 8px 12px;
+      margin-left: 6px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #1d4ed8; }
+    .temp { font-size: 40px; font-weight: bold; margin-top: 10px; }
+    .details { color: #374151; margin-top: 8px; }
+    .status { font-size: 12px; color: #6b7280; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🌤 Real-time Weather</h2>
+    <input type="text" id="cityInput" placeholder="Enter city (e.g., Chennai)" />
+    <button id="getBtn">Get</button>
+    <div id="weatherOutput">
+      <div class="temp">--°C</div>
+      <div class="details">---</div>
+      <div class="status">Enter a city to see the weather.</div>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById("cityInput");
+    const btn = document.getElementById("getBtn");
+    const tempEl = document.querySelector(".temp");
+    const detailsEl = document.querySelector(".details");
+    const statusEl = document.querySelector(".status");
+
+    let currentCity = null;
+    let timer = null;
+
+    async function fetchWeather(city) {
+      if (!city) {
+        statusEl.textContent = "Please enter a city name.";
+        return;
+      }
+
+      try {
+        statusEl.textContent = "Fetching weather...";
+        const res = await fetch(`https://wttr.in/${city}?format=j1`);
+        const data = await res.json();
+
+        const current = data.current_condition[0];
+        const temp = current.temp_C;
+        const desc = current.weatherDesc[0].value;
+        const humidity = current.humidity;
+        const wind = current.windspeedKmph;
+
+        tempEl.textContent = `${temp}°C`;
+        detailsEl.textContent = `${desc} | Humidity: ${humidity}% | Wind: ${wind} km/h`;
+        statusEl.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        statusEl.textContent = "Error fetching data. Try again.";
+        console.error(err);
+      }
+    }
+
+    btn.addEventListener("click", () => {
+      currentCity = input.value.trim();
+      if (!currentCity) return;
+      fetchWeather(currentCity);
+
+      if (timer) clearInterval(timer);
+      timer = setInterval(() => fetchWeather(currentCity), 10000); // auto-refresh every 10 sec
+    });
+  </script>
+</body>
+</html>
